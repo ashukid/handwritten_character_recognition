@@ -24,5 +24,5 @@ def get_class_label():
 	return class_label_map
 
 # calling the function
-class_label_map=get_class_label()
+# class_label_map=get_class_label()
 # print(class_label_map)

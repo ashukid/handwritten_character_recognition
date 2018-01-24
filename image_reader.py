@@ -28,7 +28,8 @@ def image_to_tensor():
 
 
     # training data and labels converted from list to numpy arrays and saved on the disk
-	train=np.array(train) 
+	train=np.array(train)
+	train=train.reshape(-1,128,128,1) 
 	label=np.array(label)
 	np.save("train.npy",train)
 	np.save("label.npy",label)

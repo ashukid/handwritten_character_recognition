@@ -1,6 +1,18 @@
 import tensorflow as tf
 import numpy as np
 import os
+import class_label
+
+
+# getting the map between the labes and corresponding class
+# like A mapped with 0, B with 1 etc -> {A:0,B:1,C:2}
+label_class_map=class_label.get_class_label()
+number_of_classes=len(label_class_map)
+
+def one_hot_convert(y):
+    onehot_y = np.zeros(number_of_classes)
+    onehot_y[y]=1  
+    return onehot_y
 
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.1)
@@ -55,29 +67,64 @@ def cnn_graph(x):
 
 
 # this function will be used for training the graph we made in cnn_graph function
-def cnn_computation(y_conv):
-    
+def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
+
+    # getting the static graph with random weights and biases
+    y_conv=cnn_graph(x)
+    # 
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+    optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver() 
     
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(100):
-            sess.run(train_step,feed_dict={x:train, y_:labels})
+        for j in range(epoch):
+
+            epoch_loss = 0
+            i=0
+            while i < len(x_train):
+                start = i
+                end = i+batch_size
+                batch_x = np.array(x_train[start:end])
+                batch_y = np.array(y_train[start:end])
+
+                sess.run(optimizer,feed_dict={x:batch_x, y_:batch_y})
+
             train_accuracy = accuracy.eval(feed_dict={x:train, y_:labels})
             print('step %d, training accuracy %g' % (i, train_accuracy))
-        y_pred = tf.nn.softmax(y_conv,name="y_pred")
-        saver.save(sess,'cats-dogs-model')
-        return y_pred
+
+
+        saver.save(sess,'recognition-model')
 
 
 def main():
+    # getting traing and label data
     train=np.load('train.npy')
-    labels=np.load('label.npy')
+    label=np.load('label.npy')
 
+    # train = train.astype('float32')
+    # labels = labels.astype('float32')
+
+    # converting labels into one hot
+    # for example : [2,1] -> [[0,0,1],[0,1,0]]
+    new_label=[]
+    for i in range(len(label)):
+        new_label.append(one_hot_convert(label[i]))
+    label=new_label
+
+    # hyperparameters
+    epoch=100
+    batch_size=2
+
+    # defining the placeholders to be replaced by valued during the session
+    # size of x = 128*128*1, 1 for grayscale value
+    x = tf.placeholder(tf.float32,[None,128,128,1],name="x")
+    y_= tf.placeholder(tf.float32,[None,number_of_classes],name="y_")
+
+    # calling the computation graph, passing all the user defined parameters
+    cnn_computation(x,y_,train,label,epoch,batch_size)
 
 
 
