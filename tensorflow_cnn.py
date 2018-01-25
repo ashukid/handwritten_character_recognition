@@ -71,6 +71,7 @@ def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
 
     # getting the static graph with random weights and biases
     y_conv=cnn_graph(x)
+
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
     optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
@@ -81,7 +82,6 @@ def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
         sess.run(tf.global_variables_initializer())
         for j in range(epoch):
 
-            epoch_loss = 0
             i=0
             while i < len(x_train):
                 start = i
@@ -96,13 +96,15 @@ def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
             print('After step %d, training accuracy %g' % (j, train_accuracy))
 
 
-        # saver.save(sess,'recognition-model')
+        saver.save(sess,'recognition-model')
 
 
 def main():
     # getting traing and label data
     train=np.load('train.npy')
     label=np.load('label.npy')
+
+    print(train.shape,label.shape)
 
     # train = train.astype('float32')
     # labels = labels.astype('float32')
@@ -115,8 +117,8 @@ def main():
     label=new_label
 
     # hyperparameters
-    epoch=2
-    batch_size=2
+    epoch=20
+    batch_size=10
 
     # defining the placeholders to be replaced by valued during the session
     # size of x = 128*128*1, 1 for grayscale value
