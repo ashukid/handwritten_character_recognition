@@ -23,8 +23,8 @@ def image_to_tensor():
 			for image in image_reader:
 				if(image.lower().endswith(('.png', '.jpg', '.jpeg'))):
 					# parameter 0 for grayscale, 1 for RGB
-					train.append(cv2.imread(os.path.join(path,image),0)) 
-			        label.append(class_number)
+					train.append(cv2.imread(os.path.join(path,image),0))
+					label.append(class_number)
 
 
     # training data and labels converted from list to numpy arrays and saved on the disk

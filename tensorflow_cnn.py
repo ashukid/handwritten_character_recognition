@@ -51,9 +51,9 @@ def cnn_graph(x):
     h_pool2 = max_pool_2x2(h_conv2)
 
     # Densely Connnected Layer
-    W_fc1 = weight_variable([7 * 7 * 64, 1024])
+    W_fc1 = weight_variable([32 * 32 * 64, 1024])
     b_fc1 = bias_variable([1024])
-    h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
+    h_pool2_flat = tf.reshape(h_pool2, [-1, 32*32*64])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
 
@@ -71,7 +71,6 @@ def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
 
     # getting the static graph with random weights and biases
     y_conv=cnn_graph(x)
-    # 
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
     optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
@@ -91,12 +90,13 @@ def cnn_computation(x,y_,x_train,y_train,epoch,batch_size):
                 batch_y = np.array(y_train[start:end])
 
                 sess.run(optimizer,feed_dict={x:batch_x, y_:batch_y})
+                i+=batch_size
 
-            train_accuracy = accuracy.eval(feed_dict={x:train, y_:labels})
-            print('step %d, training accuracy %g' % (i, train_accuracy))
+            train_accuracy = accuracy.eval(feed_dict={x:x_train, y_:y_train})
+            print('After step %d, training accuracy %g' % (j, train_accuracy))
 
 
-        saver.save(sess,'recognition-model')
+        # saver.save(sess,'recognition-model')
 
 
 def main():
@@ -115,7 +115,7 @@ def main():
     label=new_label
 
     # hyperparameters
-    epoch=100
+    epoch=2
     batch_size=2
 
     # defining the placeholders to be replaced by valued during the session
